@@ -27,19 +27,33 @@ func main() {
 		packet := parseList([]rune(text[1 : len(text)-1]))
 		packets = append(packets, packet)
 	}
-	dividerPacket1 := []any{[]any{2}}
-	dividerPacket2 := []any{[]any{6}}
-	packets = append(packets, dividerPacket1)
-	packets = append(packets, dividerPacket2)
-	slices.SortFunc(packets, sortPacket)
-	index1 := slices.IndexFunc(packets, func(packet []any) bool {
-		return isPacket(packet, 2)
+	packets = append(packets, []any{[]any{2}})
+	packets = append(packets, []any{[]any{6}})
+	slices.SortFunc(packets, func(a, b []any) int {
+		return determineOrder(a, b)
 	})
-	index2 := slices.IndexFunc(packets, func(packet []any) bool {
-		return isPacket(packet, 6)
-	})
-	decoderKey := (index1 + 1) * (index2 + 1)
-	fmt.Printf("decoder key = %d\n", decoderKey)
+	indices := [2]int{}
+	for i, v := range [2]int{2, 6} {
+		indices[i] = slices.IndexFunc(packets, func(packet []any) bool {
+			if len(packet) != 1 {
+				return false
+			}
+			list, ok := packet[0].([]any)
+			if !ok {
+				return false
+			}
+			if len(list) != 1 {
+				return false
+			}
+			value, ok := list[0].(int)
+			if !ok {
+				return false
+			}
+			return value == v
+
+		}) + 1
+	}
+	fmt.Printf("decoder key = %d\n", indices[0]*indices[1])
 }
 
 func parseList(text []rune) []any {
@@ -79,14 +93,10 @@ func parseList(text []rune) []any {
 		} else if text[index] == ',' {
 			index++
 		} else {
-			log.Fatal(fmt.Errorf("unexpexted run '%c' at index %d", text[index], index))
+			log.Fatal(fmt.Errorf("unexpexted rune '%c' at index %d", text[index], index))
 		}
 	}
 	return list
-}
-
-func sortPacket(a, b []any) int {
-	return determineOrder(a, b)
 }
 
 func determineOrder(left, right any) int {
@@ -130,22 +140,4 @@ func determineOrder(left, right any) int {
 		return 0
 	}
 	return 1
-}
-
-func isPacket(packet []any, value int) bool {
-	if len(packet) != 1 {
-		return false
-	}
-	list, ok := packet[0].([]any)
-	if !ok {
-		return false
-	}
-	if len(list) != 1 {
-		return false
-	}
-	v, ok := list[0].(int)
-	if !ok {
-		return false
-	}
-	return v == value
 }
