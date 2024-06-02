@@ -42,13 +42,13 @@ func main() {
 		fields := strings.Fields(scanner.Text())
 		opponent := hands[fields[0]]
 		outcome := outcomes[fields[1]]
-		me := determinMyHand(opponent, outcome)
+		me := determineMyHand(opponent, outcome)
 		points += determineOutcome(opponent, me)
 	}
 	fmt.Printf("points = %d\n", points)
 }
 
-func determinMyHand(opponent, outcome int) int {
+func determineMyHand(opponent, outcome int) int {
 	switch opponent {
 	case rock:
 		if outcome == loss {
